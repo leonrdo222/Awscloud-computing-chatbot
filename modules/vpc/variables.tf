@@ -9,7 +9,12 @@ variable "vpc_cidr_block" {
 }
 
 variable "public_subnet_cidr" {
-  description = "CIDR block for the public subnet"
+  description = "CIDR block for the first public subnet"
+  type        = string
+}
+
+variable "public_subnet2_cidr" {
+  description = "CIDR block for the second public subnet"
   type        = string
 }
 
@@ -19,6 +24,11 @@ variable "private_subnet_cidr" {
 }
 
 variable "availability_zone" {
-  description = "AWS Availability Zone"
+  description = "Primary AWS Availability Zone"
+  type        = string
+}
+
+variable "availability_zone2" {
+  description = "Secondary AWS Availability Zone"
   type        = string
 }

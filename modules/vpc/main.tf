@@ -1,3 +1,7 @@
+###############################################
+# VPC Module
+###############################################
+
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_support   = true
@@ -9,10 +13,10 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.public_subnet_cidr
-  availability_zone = var.availability_zone
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr
   map_public_ip_on_launch = true
+  availability_zone       = var.availability_zone
 
   tags = {
     Name = "${var.project_name}-public-subnet"
@@ -31,6 +35,7 @@ resource "aws_subnet" "private" {
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
+
   tags = {
     Name = "${var.project_name}-igw"
   }

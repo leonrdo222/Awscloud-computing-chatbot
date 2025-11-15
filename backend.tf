@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
     bucket  = "my-terraform-state-bucket-chatbot"
-    key     = "terraform_chatbotleo/terraform.tfstate"
+    key     = "terraform_chatbot/terraform.tfstate"
     region  = "us-east-1"
     encrypt = true
   }
@@ -12,4 +12,8 @@ terraform {
       version = "~> 5.0"
     }
   }
+}
+
+provider "aws" {
+  region = var.aws_region
 }
