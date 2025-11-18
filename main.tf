@@ -1,18 +1,24 @@
 ###############################################
-# Root infrastructure for chatbot project
+# Root Infrastructure for leonow.site
 ###############################################
 
+# ------------ VPC ------------
 module "vpc" {
-  source              = "./modules/vpc"
-  project_name        = var.project_name
-  vpc_cidr_block      = var.vpc_cidr_block
-  public_subnet_cidr  = var.public_subnet_cidr
-  public_subnet2_cidr = var.public_subnet2_cidr
-  private_subnet_cidr = var.private_subnet_cidr
-  availability_zone   = var.availability_zone
-  availability_zone2  = var.availability_zone2
+  source               = "./modules/vpc"
+
+  project_name         = var.project_name
+  vpc_cidr_block       = var.vpc_cidr_block
+
+  public_subnet_cidr    = var.public_subnet_cidr
+  public_subnet2_cidr   = var.public_subnet2_cidr
+  private_subnet_cidr   = var.private_subnet_cidr
+  private_subnet2_cidr  = var.private_subnet2_cidr
+
+  availability_zone_1   = var.availability_zone_1
+  availability_zone_2   = var.availability_zone_2
 }
 
+# ------------ Security Groups ------------
 module "security_groups" {
   source       = "./modules/security_groups"
   project_name = var.project_name
@@ -20,31 +26,44 @@ module "security_groups" {
   app_port     = var.app_port
 }
 
+# ------------ IAM (EC2 Role + SSM) ------------
 module "iam" {
   source       = "./modules/iam"
   project_name = var.project_name
 }
 
+# ------------ ALB + Route53 + ACM ------------
 module "alb" {
-  source           = "./modules/alb"
-  project_name     = var.project_name
-  vpc_id           = module.vpc.vpc_id
+  source            = "./modules/alb"
+
+  project_name      = var.project_name
+  vpc_id            = module.vpc.vpc_id
   public_subnet_ids = module.vpc.public_subnet_ids
-  alb_sg_id        = module.security_groups.alb_sg_id
-  domain_name      = var.domain_name
-  hosted_zone_id   = var.hosted_zone_id
-  app_port         = var.app_port
+  alb_sg_id         = module.security_groups.alb_sg_id
+
+  domain_name       = var.domain_name
+  hosted_zone_id    = var.hosted_zone_id
+  app_port          = var.app_port
 }
 
+# ------------ Autoscaling / Launch Template ------------
 module "autoscaling" {
-  source               = "./modules/autoscaling"
-  project_name         = var.project_name
-  instance_type        = var.instance_type
-  key_name             = var.key_name
-  ec2_sg_id            = module.security_groups.ec2_sg_id
+  source = "./modules/autoscaling"
+
+  project_name          = var.project_name
+  instance_type         = var.instance_type
+  key_name              = var.key_name
+
+  ec2_sg_id             = module.security_groups.ec2_sg_id
   instance_profile_name = module.iam.instance_profile_name
-  github_repo_url      = var.github_repo_url
-  app_port             = var.app_port
-  subnet_ids           = module.vpc.public_subnet_ids
-  target_group_arn     = module.alb.target_group_arn
+
+  subnet_ids            = module.vpc.public_subnet_ids
+  target_group_arn      = module.alb.target_group_arn
+
+  github_repo_url       = var.github_repo_url
+  app_port              = var.app_port
+
+  min_size              = var.min_size
+  max_size              = var.max_size
+  desired_capacity      = var.desired_capacity
 }
