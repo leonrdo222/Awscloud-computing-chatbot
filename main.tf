@@ -5,16 +5,16 @@
 module "vpc" {
   source = "./modules/vpc"
 
-  project_name          = var.project_name
-  vpc_cidr_block        = var.vpc_cidr_block
+  project_name   = var.project_name
+  vpc_cidr_block = var.vpc_cidr_block
 
-  public_subnet_cidr    = var.public_subnet_cidr
-  public_subnet2_cidr   = var.public_subnet2_cidr
-  private_subnet_cidr   = var.private_subnet_cidr
-  private_subnet2_cidr  = var.private_subnet2_cidr
+  public_subnet_cidr   = var.public_subnet_cidr
+  public_subnet2_cidr  = var.public_subnet2_cidr
+  private_subnet_cidr  = var.private_subnet_cidr
+  private_subnet2_cidr = var.private_subnet2_cidr
 
-  availability_zone_1   = var.availability_zone_1
-  availability_zone_2   = var.availability_zone_2
+  availability_zone_1 = var.availability_zone_1
+  availability_zone_2 = var.availability_zone_2
 }
 
 # ------------ Security Groups ------------
@@ -61,22 +61,22 @@ module "alb" {
 module "autoscaling" {
   source = "./modules/autoscaling"
 
-  project_name          = var.project_name
-  instance_type         = var.instance_type
-  ami_id                = var.ami_id
+  project_name  = var.project_name
+  instance_type = var.instance_type
+  ami_id        = var.ami_id
 
   ec2_sg_id             = module.security_groups.ec2_sg_id
   instance_profile_name = module.iam.instance_profile_name
 
-  subnet_ids            = module.vpc.public_subnet_ids
-  target_group_arn      = module.alb.target_group_arn
+  subnet_ids       = module.vpc.public_subnet_ids
+  target_group_arn = module.alb.target_group_arn
 
-  ecr_repo_url          = module.ecr.repository_url
-  aws_region            = var.aws_region
-  app_port              = var.app_port
-  model_s3_uri          = var.model_s3_uri
+  ecr_repo_url = module.ecr.repository_url
+  aws_region   = var.aws_region
+  app_port     = var.app_port
+  model_s3_uri = var.model_s3_uri
 
-  min_size              = var.min_size
-  max_size              = var.max_size
-  desired_capacity      = var.desired_capacity
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
 }

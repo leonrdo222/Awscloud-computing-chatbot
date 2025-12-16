@@ -22,7 +22,7 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 ###############################################
-# Install SSM Agent (official deb)
+# Install SSM Agent
 ###############################################
 if ! systemctl is-active --quiet amazon-ssm-agent; then
   curl -o /tmp/ssm.deb https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
@@ -32,45 +32,44 @@ if ! systemctl is-active --quiet amazon-ssm-agent; then
 fi
 
 ###############################################
-# Variables injected by Terraform
+# Terraform-injected variables
 ###############################################
 ECR_REPO="${ECR_REPO}"
 AWS_REGION="${AWS_REGION}"
 APP_PORT="${APP_PORT}"
 MODEL_S3_URI="${MODEL_S3_URI}"
 
-IMAGE="${ECR_REPO}:latest"
+IMAGE="$${ECR_REPO}:latest"
 CONTAINER_NAME="chatbot"
 
 ###############################################
-# App runner script (called by systemd)
+# App runner script (systemd target)
 ###############################################
 cat >/usr/local/bin/run-chatbot.sh <<'RUNEOF'
 #!/bin/bash
 set -e
 
-aws ecr get-login-password --region ${AWS_REGION} \
-  | docker login --username AWS --password-stdin ${ECR_REPO%/*}
+aws ecr get-login-password --region $${AWS_REGION} \
+  | docker login --username AWS --password-stdin $${ECR_REPO%/*}
 
-docker pull ${IMAGE}
+docker pull $${IMAGE}
 
 mkdir -p /app/data
 
-if [ -n "${MODEL_S3_URI}" ]; then
+if [ -n "$${MODEL_S3_URI}" ]; then
   TMP="/tmp/model.zip"
-  aws s3 cp "${MODEL_S3_URI}" "${TMP}"
-  unzip -o "${TMP}" -d /app/data
-  rm -f "${TMP}"
+  aws s3 cp "$${MODEL_S3_URI}" "$${TMP}"
+  unzip -o "$${TMP}" -d /app/data
+  rm -f "$${TMP}"
 fi
 
-docker rm -f ${CONTAINER_NAME} || true
+docker rm -f chatbot || true
 
 docker run -d \
-  --name ${CONTAINER_NAME} \
+  --name chatbot \
   --restart unless-stopped \
-  -p ${APP_PORT}:8080 \
-  -e MODEL_S3_URI="${MODEL_S3_URI}" \
-  ${IMAGE}
+  -p $${APP_PORT}:8080 \
+  $${IMAGE}
 RUNEOF
 
 chmod +x /usr/local/bin/run-chatbot.sh
@@ -95,9 +94,6 @@ TimeoutStartSec=0
 WantedBy=multi-user.target
 EOF
 
-###############################################
-# Enable & start service
-###############################################
 systemctl daemon-reload
 systemctl enable chatbot
 systemctl start chatbot
