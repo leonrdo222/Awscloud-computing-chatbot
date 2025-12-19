@@ -2,16 +2,24 @@
 # Root Variables
 ###############################################
 
-# ------------ Project ------------
+# ------------ Project / AWS ------------
 variable "project_name" {
-  type    = string
-  default = "chatbotleo"
+  description = "Project name prefix"
+  type        = string
+  default     = "chatbotleo"
 }
 
-# ------------ VPC ------------
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
+# ------------ VPC / Networking ------------
 variable "vpc_cidr_block" {
-  type    = string
-  default = "10.0.0.0/16"
+  description = "CIDR block for VPC"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidr" {
@@ -44,20 +52,53 @@ variable "availability_zone_2" {
   default = "us-east-1b"
 }
 
+# ------------ Security ------------
+variable "admin_cidr" {
+  description = "CIDR allowed to SSH into EC2 instances"
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
 # ------------ Application ------------
 variable "app_port" {
-  type    = number
-  default = 8080
+  description = "Application port exposed by container"
+  type        = number
+  default     = 8080
+}
+
+variable "health_check_path" {
+  description = "ALB health check path"
+  type        = string
+  default     = "/"
+}
+
+# ------------ Domain / Route53 / ACM ------------
+variable "domain_name" {
+  description = "Domain name (Route53)"
+  type        = string
+}
+
+variable "hosted_zone_id" {
+  description = "Route53 Hosted Zone ID"
+  type        = string
 }
 
 # ------------ Autoscaling / EC2 ------------
 variable "instance_type" {
-  type    = string
-  default = "t3.micro"
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "ami_id" {
+  description = "AMI ID for EC2 instances"
+  type        = string
 }
 
 variable "key_name" {
-  type = string
+  description = "EC2 key pair name (optional)"
+  type        = string
+  default     = ""
 }
 
 variable "desired_capacity" {
@@ -75,20 +116,22 @@ variable "max_size" {
   default = 2
 }
 
+# ------------ CI / Source ------------
 variable "github_repo_url" {
-  type = string
+  description = "GitHub repo URL (used by CI or metadata)"
+  type        = string
+  default     = ""
 }
 
-# ------------ Domain / Route53 / ACM ------------
-variable "domain_name" {
-  type = string
+# ------------ Model Artifacts (Optional) ------------
+variable "model_s3_uri" {
+  description = "Optional S3 URI for ML model artifacts"
+  type        = string
+  default     = ""
 }
 
-variable "hosted_zone_id" {
-  type = string
-}
-
-variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+variable "model_s3_arns" {
+  description = "List of S3 ARNs EC2 is allowed to read"
+  type        = list(string)
+  default     = []
 }

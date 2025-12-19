@@ -1,20 +1,36 @@
-# cloud-computing-chatbot
-Cloud computing project. It is a chatbot that can chat with users through analyzing the sentences.More specifically, we made it as a medical assistant for a hospital.
+# AI Chatbot Deployment on AWS (Docker + Terraform)
 
+This project deploys a Python-based AI chatbot to AWS using modern cloud best practices:
+- Docker for containerization
+- Terraform for infrastructure as code
+- GitHub Actions for CI/CD
+- Application Load Balancer + HTTPS
+- Auto Scaling Group with systemd-managed containers
 
+## Architecture Overview
+- VPC with public subnets
+- Application Load Balancer (HTTPS via ACM)
+- EC2 Auto Scaling Group
+- Docker container running Tornado-based chatbot
+- Amazon ECR for image storage
+- AWS SSM for secure instance management
+- Route53 for DNS (`leonow.site`)
 
-### Technology
+## Deployment Flow
+1. GitHub Actions builds Docker image
+2. Image is pushed to Amazon ECR
+3. EC2 instances pull image on boot or restart
+4. systemd ensures container restarts on failure/reboot
+5. ALB routes traffic to healthy instances
 
-The chatbot is based on tornado(<https://www.tornadoweb.org/en/stable/>) and bootstrap(<https://getbootstrap.com/>)
+## Prerequisites
+- AWS account
+- Terraform >= 1.5
+- Docker
+- GitHub repository with Actions enabled
 
-The deep learning training is based on keras and nltk. You can find a pre-trained model in data folder or you can train by yourself using train_chatbot.py
-
-
-
-### Deployment guidance on AWS ec2 instance
-
-1. Create a new EC2 instance on AWS, choosing the Ubuntu 18 system.
-2. Git clone this repository to your instance using SSH.
-3. Configure python environment for running this project: python3-pip, python-tornado, tensorflow, keras, ntlk, ntlk.wordnet, ntlk.punkt
-4. Run the chatdemo.py
-5. Now you can visit the web application using the public IP of your ec2 instance, with port 8080.
+## How to Deploy
+```bash
+terraform init
+terraform plan -var-file="terraform.tfvars"
+terraform apply -var-file="terraform.tfvars"
