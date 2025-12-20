@@ -1,13 +1,12 @@
 ###############################################
 # Root Infrastructure for leonow.site
-###############################################
-
+##########################################
 # ------------ VPC ------------
 module "vpc" {
-  source               = "./modules/vpc"
+  source = "./modules/vpc"
 
-  project_name         = var.project_name
-  vpc_cidr_block       = var.vpc_cidr_block
+  project_name          = var.project_name
+  vpc_cidr_block        = var.vpc_cidr_block
 
   public_subnet_cidr    = var.public_subnet_cidr
   public_subnet2_cidr   = var.public_subnet2_cidr
@@ -20,21 +19,32 @@ module "vpc" {
 
 # ------------ Security Groups ------------
 module "security_groups" {
-  source       = "./modules/security_groups"
+  source = "./modules/security_groups"
+
   project_name = var.project_name
   vpc_id       = module.vpc.vpc_id
   app_port     = var.app_port
+  admin_cidr   = var.admin_cidr
 }
 
-# ------------ IAM (EC2 Role + SSM) ------------
+# ------------ IAM (EC2 Role + SSM + ECR + S3) ------------
 module "iam" {
-  source       = "./modules/iam"
+  source = "./modules/iam"
+
+  project_name  = var.project_name
+  model_s3_arns = var.model_s3_arns
+}
+
+# ------------ ECR Repository ------------
+module "ecr" {
+  source = "./modules/ecr"
+
   project_name = var.project_name
 }
 
 # ------------ ALB + Route53 + ACM ------------
 module "alb" {
-  source            = "./modules/alb"
+  source = "./modules/alb"
 
   project_name      = var.project_name
   vpc_id            = module.vpc.vpc_id
@@ -44,6 +54,7 @@ module "alb" {
   domain_name       = var.domain_name
   hosted_zone_id    = var.hosted_zone_id
   app_port          = var.app_port
+  health_check_path = var.health_check_path
 }
 
 # ------------ Autoscaling / Launch Template ------------
@@ -52,7 +63,7 @@ module "autoscaling" {
 
   project_name          = var.project_name
   instance_type         = var.instance_type
-  key_name              = var.key_name
+  ami_id                = var.ami_id
 
   ec2_sg_id             = module.security_groups.ec2_sg_id
   instance_profile_name = module.iam.instance_profile_name
@@ -60,8 +71,10 @@ module "autoscaling" {
   subnet_ids            = module.vpc.public_subnet_ids
   target_group_arn      = module.alb.target_group_arn
 
-  github_repo_url       = var.github_repo_url
+  ecr_repo_url          = module.ecr.repository_url
+  aws_region            = var.aws_region
   app_port              = var.app_port
+  model_s3_uri          = var.model_s3_uri
 
   min_size              = var.min_size
   max_size              = var.max_size

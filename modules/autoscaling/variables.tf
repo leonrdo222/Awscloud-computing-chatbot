@@ -1,59 +1,18 @@
-variable "project_name" {
-  type        = string
-  description = "Project name prefix"
-}
+variable "project_name" { type = string }
+variable "instance_type" { type = string }
+variable "ami_id" { type = string }
 
-variable "instance_type" {
-  type        = string
-  description = "EC2 instance type"
-}
+variable "ec2_sg_id" { type = string }
+variable "instance_profile_name" { type = string }
 
-variable "key_name" {
-  type        = string
-  description = "EC2 key pair name"
-}
+variable "subnet_ids" { type = list(string) }
+variable "target_group_arn" { type = string }
 
-variable "ec2_sg_id" {
-  type        = string
-  description = "Security group ID for EC2 instances"
-}
+variable "ecr_repo_url" { type = string }
+variable "aws_region" { type = string }
+variable "app_port" { type = number }
+variable "model_s3_uri" { type = string }
 
-variable "instance_profile_name" {
-  type        = string
-  description = "IAM instance profile name for EC2"
-}
-
-variable "github_repo_url" {
-  type        = string
-  description = "GitHub repository URL for chatbot app"
-}
-
-variable "app_port" {
-  type        = number
-  description = "App port"
-}
-
-variable "subnet_ids" {
-  type        = list(string)
-  description = "Subnets for ASG"
-}
-
-variable "target_group_arn" {
-  type        = string
-  description = "ALB target group ARN"
-}
-
-variable "min_size" {
-  type        = number
-  default     = 1
-}
-
-variable "max_size" {
-  type        = number
-  default     = 2
-}
-
-variable "desired_capacity" {
-  type        = number
-  default     = 1
-}
+variable "min_size" { type = number }
+variable "max_size" { type = number }
+variable "desired_capacity" { type = number }
