@@ -1,6 +1,7 @@
 ###############################################
 # Root Infrastructure for leonow.site
-##########################################
+###############################################
+
 # ------------ VPC ------------
 module "vpc" {
   source = "./modules/vpc"
@@ -27,13 +28,14 @@ module "security_groups" {
   admin_cidr   = var.admin_cidr
 }
 
-# ------------ IAM (EC2 Role + SSM + ECR + S3) ------------
-module "iam" {
-  source = "./modules/iam"
-
-  project_name  = var.project_name
-  model_s3_arns = var.model_s3_arns
+###############################################
+# IAM Module Variables
+###############################################
+variable "project_name" {
+  description = "Project name prefix for IAM resources"
+  type        = string
 }
+
 
 # ------------ ECR Repository ------------
 module "ecr" {
@@ -57,26 +59,68 @@ module "alb" {
   health_check_path = var.health_check_path
 }
 
-# ------------ Autoscaling / Launch Template ------------
-module "autoscaling" {
-  source = "./modules/autoscaling"
+###############################################
+# Autoscaling Module Variables
+###############################################
 
-  project_name  = var.project_name
-  instance_type = var.instance_type
-  ami_id        = var.ami_id
+variable "project_name" {
+  description = "Project name prefix"
+  type        = string
+}
 
-  ec2_sg_id             = module.security_groups.ec2_sg_id
-  instance_profile_name = module.iam.instance_profile_name
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
 
-  subnet_ids       = module.vpc.public_subnet_ids
-  target_group_arn = module.alb.target_group_arn
+variable "ami_id" {
+  description = "AMI ID for launch template"
+  type        = string
+}
 
-  ecr_repo_url = module.ecr.repository_url
-  aws_region   = var.aws_region
-  app_port     = var.app_port
-  model_s3_uri = var.model_s3_uri
+variable "ec2_sg_id" {
+  description = "Security group ID for EC2 instances"
+  type        = string
+}
 
-  min_size         = var.min_size
-  max_size         = var.max_size
-  desired_capacity = var.desired_capacity
+variable "instance_profile_name" {
+  description = "IAM instance profile name"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnets for Auto Scaling Group"
+  type        = list(string)
+}
+
+variable "target_group_arn" {
+  description = "ALB target group ARN"
+  type        = string
+}
+
+variable "ecr_repo_url" {
+  description = "ECR repository URL"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "app_port" {
+  description = "Application port"
+  type        = number
+}
+
+variable "min_size" {
+  type = number
+}
+
+variable "max_size" {
+  type = number
+}
+
+variable "desired_capacity" {
+  type = number
 }
