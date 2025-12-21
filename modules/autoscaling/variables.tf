@@ -1,18 +1,68 @@
-variable "project_name" { type = string }
-variable "instance_type" { type = string }
-variable "ami_id" { type = string }
+###############################################
+# Autoscaling Module Variables
+###############################################
 
-variable "ec2_sg_id" { type = string }
-variable "instance_profile_name" { type = string }
+variable "project_name" {
+  description = "Project name prefix"
+  type        = string
+}
 
-variable "subnet_ids" { type = list(string) }
-variable "target_group_arn" { type = string }
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
 
-variable "ecr_repo_url" { type = string }
-variable "aws_region" { type = string }
-variable "app_port" { type = number }
-variable "model_s3_uri" { type = string }
+variable "ami_id" {
+  description = "AMI ID for the launch template"
+  type        = string
+}
 
-variable "min_size" { type = number }
-variable "max_size" { type = number }
-variable "desired_capacity" { type = number }
+variable "ec2_sg_id" {
+  description = "Security group ID for EC2 instances"
+  type        = string
+}
+
+variable "instance_profile_name" {
+  description = "IAM instance profile name"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnets for Auto Scaling Group"
+  type        = list(string)
+}
+
+variable "target_group_arn" {
+  description = "ALB target group ARN"
+  type        = string
+}
+
+variable "ecr_repo_url" {
+  description = "ECR repository URL"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "app_port" {
+  description = "Application port"
+  type        = number
+}
+
+variable "min_size" {
+  description = "Minimum ASG size"
+  type        = number
+}
+
+variable "max_size" {
+  description = "Maximum ASG size"
+  type        = number
+}
+
+variable "desired_capacity" {
+  description = "Desired ASG capacity"
+  type        = number
+}

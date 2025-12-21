@@ -1,6 +1,12 @@
+###############################################
+# IAM Role for EC2
+###############################################
+
 data "aws_iam_policy_document" "ec2_assume_role" {
   statement {
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
+
     principals {
       type        = "Service"
       identifiers = ["ec2.amazonaws.com"]
@@ -13,42 +19,25 @@ resource "aws_iam_role" "ec2_role" {
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
 }
 
+###############################################
+# Attach AWS-managed policies
+###############################################
+
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_policy" "app_policy" {
-  name = "${var.project_name}-app-policy"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchGetImage",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchCheckLayerAvailability"
-        ]
-        Resource = "*"
-      },
-      {
-        Effect   = "Allow"
-        Action   = ["s3:GetObject"]
-        Resource = var.model_s3_arns
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "app_policy_attach" {
+resource "aws_iam_role_policy_attachment" "ecr_readonly" {
   role       = aws_iam_role.ec2_role.name
-  policy_arn = aws_iam_policy.app_policy.arn
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-resource "aws_iam_instance_profile" "profile" {
+###############################################
+# Instance Profile
+###############################################
+
+resource "aws_iam_instance_profile" "this" {
   name = "${var.project_name}-instance-profile"
   role = aws_iam_role.ec2_role.name
 }

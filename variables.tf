@@ -6,13 +6,13 @@
 # Project / AWS
 ###############################################
 variable "project_name" {
-  description = "Project name prefix"
+  description = "Project name prefix used for all resources"
   type        = string
   default     = "chatbotleo"
 }
 
 variable "aws_region" {
-  description = "AWS region"
+  description = "AWS region to deploy resources"
   type        = string
   default     = "us-east-1"
 }
@@ -21,33 +21,39 @@ variable "aws_region" {
 # VPC / Networking
 ###############################################
 variable "vpc_cidr_block" {
-  description = "CIDR block for VPC"
+  description = "CIDR block for the VPC"
   type        = string
   default     = "10.0.0.0/16"
 }
 
 variable "public_subnet_cidr" {
-  type = string
+  description = "CIDR block for public subnet 1"
+  type        = string
 }
 
 variable "public_subnet2_cidr" {
-  type = string
+  description = "CIDR block for public subnet 2"
+  type        = string
 }
 
 variable "private_subnet_cidr" {
-  type = string
+  description = "CIDR block for private subnet 1"
+  type        = string
 }
 
 variable "private_subnet2_cidr" {
-  type = string
+  description = "CIDR block for private subnet 2"
+  type        = string
 }
 
 variable "availability_zone_1" {
-  type = string
+  description = "First availability zone"
+  type        = string
 }
 
 variable "availability_zone_2" {
-  type = string
+  description = "Second availability zone"
+  type        = string
 }
 
 ###############################################
@@ -63,13 +69,13 @@ variable "admin_cidr" {
 # Application / ALB
 ###############################################
 variable "app_port" {
-  description = "Application port"
+  description = "Port the application listens on"
   type        = number
   default     = 8080
 }
 
 variable "health_check_path" {
-  description = "ALB target group health check path"
+  description = "Health check path for the ALB target group"
   type        = string
   default     = "/"
 }
@@ -83,35 +89,38 @@ variable "domain_name" {
 }
 
 variable "hosted_zone_id" {
-  description = "Route53 Hosted Zone ID"
+  description = "Route53 hosted zone ID for the domain"
   type        = string
 }
 
 ###############################################
-# EC2 / Autoscaling
+# EC2 / Auto Scaling
 ###############################################
 variable "instance_type" {
-  description = "EC2 instance type"
+  description = "EC2 instance type for Auto Scaling Group"
   type        = string
   default     = "t3.micro"
 }
 
 variable "ami_id" {
-  description = "AMI ID for EC2 launch template"
+  description = "AMI ID used by the launch template"
   type        = string
 }
 
 variable "min_size" {
-  type    = number
-  default = 1
+  description = "Minimum number of EC2 instances"
+  type        = number
+  default     = 1
 }
 
 variable "max_size" {
-  type    = number
-  default = 2
+  description = "Maximum number of EC2 instances"
+  type        = number
+  default     = 2
 }
 
 variable "desired_capacity" {
-  type    = number
-  default = 1
+  description = "Desired number of EC2 instances"
+  type        = number
+  default     = 1
 }

@@ -1,3 +1,8 @@
+###############################################
+# IAM Outputs
+###############################################
+
 output "instance_profile_name" {
-  value = aws_iam_instance_profile.profile.name
+  description = "IAM instance profile name for EC2"
+  value       = aws_iam_instance_profile.this.name
 }

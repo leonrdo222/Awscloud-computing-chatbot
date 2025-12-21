@@ -1,8 +1,8 @@
-variable "project_name" {
-  type = string
-}
+###############################################
+# IAM Module Variables
+###############################################
 
-variable "model_s3_arns" {
-  description = "S3 ARNs EC2 can read for model artifacts"
-  type        = list(string)
+variable "project_name" {
+  description = "Project name prefix for IAM resources"
+  type        = string
 }
