@@ -1,0 +1,25 @@
+# Ignore virtual environments
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Git + editor configs
+.git
+.gitignore
+.vscode/
+.idea/
+
+# Data or models if not needed
+*.ckpt
+*.h5
+
+# OS files
+.DS_Store
+
+# Terraform files (from the outer repo)
+../../terraform
+../../modules
