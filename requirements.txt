@@ -1,0 +1,22 @@
+# Web framework
+tornado==6.3.3
+
+# NLP
+nltk==3.8.1
+
+# Deep learning (CPU-only)
+tensorflow-cpu==2.16.1
+
+# Numeric + data utilities
+numpy==1.26.4
+scikit-learn==1.5.2
+pandas==2.2.2
+
+# HTTP utilities
+requests==2.32.3
+
+# Templates (if used)
+Jinja2==3.1.2
+
+# Optional helpers
+python-dotenv==1.0.0
