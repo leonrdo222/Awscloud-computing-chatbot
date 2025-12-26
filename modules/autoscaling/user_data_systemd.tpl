@@ -8,41 +8,57 @@ ECR_REPO="${ECR_REPO}"
 AWS_REGION="${AWS_REGION}"
 APP_PORT="${APP_PORT}"
 
+IMAGE="${ECR_REPO}:latest"
+CONTAINER_NAME="chatbot"
+
 ###############################################
-# Install base dependencies
+# Base system setup (Ubuntu)
 ###############################################
 apt-get update -y
 apt-get install -y \
   ca-certificates \
   curl \
-  gnupg \
-  lsb-release \
   awscli
 
 ###############################################
-# Install Docker
+# Install Docker (idempotent)
 ###############################################
 if ! command -v docker >/dev/null 2>&1; then
   curl -fsSL https://get.docker.com | sh
-  systemctl enable docker
-  systemctl start docker
 fi
 
+systemctl enable docker
+systemctl start docker
+
 ###############################################
-# Login to ECR and pull image
+# Wait for Docker to be ready
+###############################################
+until docker info >/dev/null 2>&1; do
+  sleep 2
+done
+
+###############################################
+# Login to ECR
 ###############################################
 aws ecr get-login-password --region "${AWS_REGION}" \
-  | docker login --username AWS --password-stdin "${ECR_REPO}"
+  | docker login --username AWS --password-stdin "${ECR_REPO%/*}"
 
-docker pull "${ECR_REPO}:latest"
+###############################################
+# Pull latest image
+###############################################
+docker pull "${IMAGE}"
+
+###############################################
+# Stop old container (if any)
+###############################################
+docker rm -f "${CONTAINER_NAME}" || true
 
 ###############################################
 # Run chatbot container
+# chatdemo.py listens on 0.0.0.0:8080
 ###############################################
-docker rm -f chatbot || true
-
 docker run -d \
-  --name chatbot \
+  --name "${CONTAINER_NAME}" \
   --restart unless-stopped \
   -p "${APP_PORT}:8080" \
-  "${ECR_REPO}:latest"
+  "${IMAGE}"

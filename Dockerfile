@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED=1
 # Working directory
 WORKDIR /app
 
-# System dependencies required by NLP / ML libs
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -37,12 +37,8 @@ EOF
 # Copy application code
 COPY . .
 
-# App configuration
-ENV HOST=0.0.0.0
-ENV PORT=8080
-
-# Expose Tornado port
+# Expose Tornado port (matches chatdemo.py default)
 EXPOSE 8080
 
-# Run chatbot
+# Run chatbot (foreground process)
 CMD ["python", "chatdemo.py"]
