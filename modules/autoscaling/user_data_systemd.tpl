@@ -1,21 +1,21 @@
 #!/bin/bash
 set -eux
 
-# Log everything
-exec > >(tee /var/log/user-data.log|logger -t user-data ) 2>&1
+# Log user-data
+exec > >(tee /var/log/user-data.log | logger -t user-data) 2>&1
 
 ###############################################
-# Variables from Terraform
+# Terraform-injected variables
 ###############################################
-ECR_REPO="${ECR_REPO}"
-AWS_REGION="${AWS_REGION}"
-APP_PORT="${APP_PORT}"
+ECR_REPO="$${ECR_REPO}"
+AWS_REGION="$${AWS_REGION}"
+APP_PORT="$${APP_PORT}"
 
-IMAGE="${ECR_REPO}:latest"
+IMAGE="$${ECR_REPO}:latest"
 CONTAINER_NAME="chatbot"
 
 ###############################################
-# Base packages
+# Base system setup
 ###############################################
 apt-get update -y
 apt-get install -y \
@@ -26,7 +26,7 @@ apt-get install -y \
   awscli
 
 ###############################################
-# Install Docker (OFFICIAL WAY)
+# Install Docker (official, systemd-safe)
 ###############################################
 curl -fsSL https://get.docker.com | sh
 
@@ -44,21 +44,21 @@ done
 ###############################################
 # Login to ECR (NON-INTERACTIVE)
 ###############################################
-aws ecr get-login-password --region "${AWS_REGION}" \
-  | docker login --username AWS --password-stdin "${ECR_REPO%/*}"
+aws ecr get-login-password --region "$${AWS_REGION}" \
+  | docker login --username AWS --password-stdin "$${ECR_REPO%/*}"
 
 ###############################################
-# Pull image
+# Pull latest image
 ###############################################
-docker pull "${IMAGE}"
+docker pull "$${IMAGE}"
 
 ###############################################
 # Run chatbot container
 ###############################################
-docker rm -f "${CONTAINER_NAME}" || true
+docker rm -f "$${CONTAINER_NAME}" || true
 
 docker run -d \
-  --name "${CONTAINER_NAME}" \
+  --name "$${CONTAINER_NAME}" \
   --restart unless-stopped \
-  -p "${APP_PORT}:8080" \
-  "${IMAGE}"
+  -p "$${APP_PORT}:8080" \
+  "$${IMAGE}"
