@@ -16,8 +16,8 @@ snap remove docker || true  # Ignore if not installed
 # Uninstall old Docker versions (apt-based)
 apt remove -y docker docker.io containerd runc docker-doc docker-compose docker-compose-v2 podman-docker || true
 
-# Install prerequisites for Docker repo setup
-apt install -y ca-certificates curl gnupg lsb-release
+# Install prerequisites for Docker repo setup + AWS CLI
+apt install -y ca-certificates curl gnupg lsb-release awscli
 
 # Set up Docker's official APT repository
 install -m 0755 -d /etc/apt/keyrings
@@ -50,10 +50,10 @@ done
 usermod -aG docker ubuntu
 
 # Login to ECR (using IAM role for credentials)
-aws ecr get-login-password --region $${region} | docker login --username AWS --password-stdin $${account_id}.dkr.ecr.$${region}.amazonaws.com
+aws ecr get-login-password --region $${AWS_REGION} | docker login --username AWS --password-stdin $${ECR_REPO%/*}
 
 # Pull the latest image from ECR
-docker pull $${account_id}.dkr.ecr.$${region}.amazonaws.com/$${ecr_repo_name}:latest
+docker pull $${ECR_REPO}:latest
 
 # Create systemd unit file for the chatbot container
 cat <<EOF > /etc/systemd/system/chatbot.service
@@ -64,7 +64,7 @@ Requires=docker.service
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/docker run --rm --name chatbot -p 8080:8080 $${account_id}.dkr.ecr.$${region}.amazonaws.com/$${ecr_repo_name}:latest
+ExecStart=/usr/bin/docker run --rm --name chatbot -p $${APP_PORT}:8080 $${ECR_REPO}:latest
 ExecStop=/usr/bin/docker stop chatbot
 
 [Install]
@@ -79,6 +79,6 @@ systemctl start chatbot.service
 # Wait for container to start and verify
 sleep 10
 docker ps  # Log running containers
-curl -v http://localhost:8080 || echo "Curl failed, check logs"
+curl -v http://localhost:$${APP_PORT} || echo "Curl failed, check logs"
 
 echo "User-data script completed at $(date)"
