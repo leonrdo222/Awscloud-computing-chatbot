@@ -1,14 +1,14 @@
 #!/bin/bash
-set -e
+set -euxo pipefail
 
 ###############################################
 # Terraform-injected variables
 ###############################################
-ECR_REPO="{{ECR_REPO}}"
-AWS_REGION="{{AWS_REGION}}"
-APP_PORT="{{APP_PORT}}"
+ECR_REPO="$${ECR_REPO}"
+AWS_REGION="$${AWS_REGION}"
+APP_PORT="$${APP_PORT}"
 
-IMAGE="${ECR_REPO}:latest"
+IMAGE="$${ECR_REPO}:latest"
 CONTAINER_NAME="chatbot"
 
 ###############################################
@@ -38,29 +38,26 @@ until docker info >/dev/null 2>&1; do
 done
 
 ###############################################
-# Login to Amazon ECR
+# Login to ECR (NON-INTERACTIVE)
 ###############################################
-ECR_REGISTRY="$(echo "$ECR_REPO" | cut -d/ -f1)"
-
-aws ecr get-login-password --region "$AWS_REGION" \
-  | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+aws ecr get-login-password --region "$${AWS_REGION}" \
+  | docker login --username AWS --password-stdin "$${ECR_REPO%/*}"
 
 ###############################################
 # Pull latest image
 ###############################################
-docker pull "$IMAGE"
+docker pull "$${IMAGE}"
 
 ###############################################
-# Stop old container (if exists)
+# Stop old container if exists
 ###############################################
-docker rm -f "$CONTAINER_NAME" || true
+docker rm -f "$${CONTAINER_NAME}" || true
 
 ###############################################
 # Run chatbot container
-# chatdemo.py listens on 0.0.0.0:8080
 ###############################################
 docker run -d \
-  --name "$CONTAINER_NAME" \
+  --name "$${CONTAINER_NAME}" \
   --restart unless-stopped \
-  -p "$APP_PORT:8080" \
-  "$IMAGE"
+  -p "$${APP_PORT}:8080" \
+  "$${IMAGE}"
