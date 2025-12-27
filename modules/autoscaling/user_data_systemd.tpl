@@ -1,64 +1,84 @@
 #!/bin/bash
-set -eux
 
-# Log user-data
-exec > >(tee /var/log/user-data.log | logger -t user-data) 2>&1
+# Log everything to /var/log/user-data.log for debugging
+exec > /var/log/user-data.log 2>&1
+set -x  # Enable command tracing
 
-###############################################
-# Terraform-injected variables
-###############################################
-ECR_REPO="$${ECR_REPO}"
-AWS_REGION="$${AWS_REGION}"
-APP_PORT="$${APP_PORT}"
+echo "Starting user-data script at $(date)"
 
-IMAGE="$${ECR_REPO}:latest"
-CONTAINER_NAME="chatbot"
+# Update system packages
+apt update -y
+apt upgrade -y
 
-###############################################
-# Base system setup
-###############################################
-apt-get update -y
-apt-get install -y \
-  ca-certificates \
-  curl \
-  gnupg \
-  lsb-release \
-  awscli
+# Remove any conflicting snap Docker installation
+snap remove docker || true  # Ignore if not installed
 
-###############################################
-# Install Docker (official, systemd-safe)
-###############################################
-curl -fsSL https://get.docker.com | sh
+# Uninstall old Docker versions (apt-based)
+apt remove -y docker docker.io containerd runc docker-doc docker-compose docker-compose-v2 podman-docker || true
 
-systemctl daemon-reexec
-systemctl enable docker
+# Install prerequisites for Docker repo setup
+apt install -y ca-certificates curl gnupg lsb-release
+
+# Set up Docker's official APT repository
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+apt update -y
+
+# Install Docker Engine and related packages
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Start and enable Docker service
 systemctl start docker
+systemctl enable docker
 
-###############################################
-# Wait for Docker
-###############################################
-until systemctl is-active --quiet docker; do
-  sleep 2
+# Wait for Docker to be ready (up to 60s)
+for i in {1..12}; do
+  if docker version; then
+    break
+  fi
+  echo "Waiting for Docker to start... ($i/12)"
+  sleep 5
 done
 
-###############################################
-# Login to ECR (NON-INTERACTIVE)
-###############################################
-aws ecr get-login-password --region "$${AWS_REGION}" \
-  | docker login --username AWS --password-stdin "$${ECR_REPO%/*}"
+# Add ubuntu user to docker group for non-root access
+usermod -aG docker ubuntu
 
-###############################################
-# Pull latest image
-###############################################
-docker pull "$${IMAGE}"
+# Login to ECR (using IAM role for credentials)
+aws ecr get-login-password --region $${region} | docker login --username AWS --password-stdin $${account_id}.dkr.ecr.$${region}.amazonaws.com
 
-###############################################
-# Run chatbot container
-###############################################
-docker rm -f "$${CONTAINER_NAME}" || true
+# Pull the latest image from ECR
+docker pull $${account_id}.dkr.ecr.$${region}.amazonaws.com/$${ecr_repo_name}:latest
 
-docker run -d \
-  --name "$${CONTAINER_NAME}" \
-  --restart unless-stopped \
-  -p "$${APP_PORT}:8080" \
-  "$${IMAGE}"
+# Create systemd unit file for the chatbot container
+cat <<EOF > /etc/systemd/system/chatbot.service
+[Unit]
+Description=Leonow Chatbot Container
+After=docker.service
+Requires=docker.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker run --rm --name chatbot -p 8080:8080 $${account_id}.dkr.ecr.$${region}.amazonaws.com/$${ecr_repo_name}:latest
+ExecStop=/usr/bin/docker stop chatbot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd, enable, and start the service
+systemctl daemon-reload
+systemctl enable chatbot.service
+systemctl start chatbot.service
+
+# Wait for container to start and verify
+sleep 10
+docker ps  # Log running containers
+curl -v http://localhost:8080 || echo "Curl failed, check logs"
+
+echo "User-data script completed at $(date)"
