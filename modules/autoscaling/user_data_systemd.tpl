@@ -1,63 +1,64 @@
 #!/bin/bash
-set -euxo pipefail
+set -eux
+
+# Log everything
+exec > >(tee /var/log/user-data.log|logger -t user-data ) 2>&1
 
 ###############################################
-# Terraform-injected variables
+# Variables from Terraform
 ###############################################
-ECR_REPO="$${ECR_REPO}"
-AWS_REGION="$${AWS_REGION}"
-APP_PORT="$${APP_PORT}"
+ECR_REPO="${ECR_REPO}"
+AWS_REGION="${AWS_REGION}"
+APP_PORT="${APP_PORT}"
 
-IMAGE="$${ECR_REPO}:latest"
+IMAGE="${ECR_REPO}:latest"
 CONTAINER_NAME="chatbot"
 
 ###############################################
-# Base system setup (Ubuntu)
+# Base packages
 ###############################################
 apt-get update -y
 apt-get install -y \
   ca-certificates \
   curl \
+  gnupg \
+  lsb-release \
   awscli
 
 ###############################################
-# Install Docker (idempotent)
+# Install Docker (OFFICIAL WAY)
 ###############################################
-if ! command -v docker >/dev/null 2>&1; then
-  curl -fsSL https://get.docker.com | sh
-fi
+curl -fsSL https://get.docker.com | sh
 
+systemctl daemon-reexec
 systemctl enable docker
 systemctl start docker
 
 ###############################################
-# Wait for Docker daemon
+# Wait for Docker
 ###############################################
-until docker info >/dev/null 2>&1; do
+until systemctl is-active --quiet docker; do
   sleep 2
 done
 
 ###############################################
 # Login to ECR (NON-INTERACTIVE)
 ###############################################
-aws ecr get-login-password --region "$${AWS_REGION}" \
-  | docker login --username AWS --password-stdin "$${ECR_REPO%/*}"
+aws ecr get-login-password --region "${AWS_REGION}" \
+  | docker login --username AWS --password-stdin "${ECR_REPO%/*}"
 
 ###############################################
-# Pull latest image
+# Pull image
 ###############################################
-docker pull "$${IMAGE}"
-
-###############################################
-# Stop old container if exists
-###############################################
-docker rm -f "$${CONTAINER_NAME}" || true
+docker pull "${IMAGE}"
 
 ###############################################
 # Run chatbot container
 ###############################################
+docker rm -f "${CONTAINER_NAME}" || true
+
 docker run -d \
-  --name "$${CONTAINER_NAME}" \
+  --name "${CONTAINER_NAME}" \
   --restart unless-stopped \
-  -p "$${APP_PORT}:8080" \
-  "$${IMAGE}"
+  -p "${APP_PORT}:8080" \
+  "${IMAGE}"
