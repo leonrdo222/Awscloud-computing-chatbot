@@ -11,14 +11,13 @@ module "vpc" {
   project_name   = var.project_name
   vpc_cidr_block = var.vpc_cidr_block
 
-  public_subnet_cidr   = var.public_subnet_cidr
-  public_subnet2_cidr  = var.public_subnet2_cidr
-  private_subnet_cidr  = var.private_subnet_cidr
-  private_subnet2_cidr = var.private_subnet2_cidr
+  public_subnet_cidr  = var.public_subnet_cidr
+  public_subnet2_cidr = var.public_subnet2_cidr
 
   availability_zone_1 = var.availability_zone_1
   availability_zone_2 = var.availability_zone_2
 }
+
 
 ###############################################
 # Security Groups
