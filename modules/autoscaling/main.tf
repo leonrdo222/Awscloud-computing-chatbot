@@ -55,7 +55,7 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns   = [var.target_group_arn]
 
   health_check_type         = "ELB"
-  health_check_grace_period = 120
+  health_check_grace_period = 300  # Increased to allow more time for bootstrap
 
   #############################################
   # Launch Template attachment
@@ -72,5 +72,9 @@ resource "aws_autoscaling_group" "this" {
     key                 = "Name"
     value               = "${var.project_name}-ec2"
     propagate_at_launch = true
+  }
+
+  lifecycle {
+    ignore_changes = [desired_capacity]  # Optional: Ignore changes if scaling policies adjust it
   }
 }

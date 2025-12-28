@@ -8,3 +8,7 @@ output "public_subnet_ids" {
     aws_subnet.public_2.id
   ]
 }
+
+output "internet_gateway_id" {
+  value = aws_internet_gateway.igw.id
+}

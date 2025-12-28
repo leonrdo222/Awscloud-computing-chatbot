@@ -6,6 +6,20 @@ set -x  # Enable command tracing
 
 echo "Starting user-data script at $(date)"
 
+# Variable validation (fail early if empty)
+if [ -z "$${AWS_REGION}" ]; then
+  echo "Error: AWS_REGION is empty or not set" >&2
+  exit 1
+fi
+if [ -z "$${ECR_REPO}" ]; then
+  echo "Error: ECR_REPO is empty or not set" >&2
+  exit 1
+fi
+if [ -z "$${APP_PORT}" ]; then
+  echo "Error: APP_PORT is empty or not set" >&2
+  exit 1
+fi
+
 # Update system packages non-interactively
 DEBIAN_FRONTEND=noninteractive apt update -y
 DEBIAN_FRONTEND=noninteractive apt upgrade -y
