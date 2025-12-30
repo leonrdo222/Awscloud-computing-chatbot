@@ -41,7 +41,7 @@ module "iam" {
 }
 
 ###############################################
-# ECR (needed for GitHub Actions / CI/CD to push images)
+# ECR
 ###############################################
 module "ecr" {
   source = "./modules/ecr"
@@ -67,59 +67,22 @@ module "alb" {
 }
 
 ###############################################
-# Autoscaling Module Variables (Golden AMI Version)
+# Auto Scaling (Golden AMI)
 ###############################################
+module "autoscaling" {
+  source = "./modules/autoscaling"
 
-variable "project_name" {
-  description = "Project name prefix"
-  type        = string
-}
+  project_name          = var.project_name
+  instance_type         = var.instance_type
+  custom_ami_id         = var.custom_ami_id
 
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "t3.small"
-}
+  ec2_sg_id             = module.security_groups.ec2_sg_id
+  instance_profile_name = module.iam.instance_profile_name
 
-variable "custom_ami_id" {
-  description = "Custom AMI ID with Docker and chatbot pre-baked (from Packer)"
-  type        = string
-}
+  subnet_ids       = module.vpc.public_subnet_ids
+  target_group_arn = module.alb.target_group_arn
 
-variable "ec2_sg_id" {
-  description = "Security group ID for EC2 instances"
-  type        = string
-}
-
-variable "instance_profile_name" {
-  description = "IAM instance profile name"
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "List of subnet IDs for the ASG"
-  type        = list(string)
-}
-
-variable "target_group_arn" {
-  description = "ALB target group ARN"
-  type        = string
-}
-
-variable "min_size" {
-  description = "Minimum size of the Auto Scaling Group"
-  type        = number
-  default     = 1
-}
-
-variable "max_size" {
-  description = "Maximum size of the Auto Scaling Group"
-  type        = number
-  default     = 2
-}
-
-variable "desired_capacity" {
-  description = "Desired capacity of the Auto Scaling Group"
-  type        = number
-  default     = 1
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_capacity
 }

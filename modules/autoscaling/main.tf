@@ -1,14 +1,14 @@
 ###############################################
-# Launch Template
+# Launch Template (Golden AMI)
 ###############################################
 
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-lt-"
-  image_id      = var.custom_ami_id        # ← Now uses the pre-baked AMI from Packer
+  image_id      = var.custom_ami_id        # ← Pre-baked AMI from Packer
   instance_type = var.instance_type
 
   #############################################
-  # IAM role for EC2 (still needed for SSM and potential future use)
+  # IAM role for EC2 (SSM + future use)
   #############################################
   iam_instance_profile {
     name = var.instance_profile_name
@@ -18,11 +18,6 @@ resource "aws_launch_template" "this" {
   # Networking
   #############################################
   vpc_security_group_ids = [var.ec2_sg_id]
-
-  #############################################
-  # NO USER_DATA ANYMORE
-  # The AMI already has Docker installed, image pulled, and chatbot.service enabled
-  #############################################
 
   #############################################
   # Zero-downtime updates
@@ -46,7 +41,7 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns   = [var.target_group_arn]
 
   health_check_type         = "ELB"
-  health_check_grace_period = 60  # ← Reduced: instance is ready in ~20-30 seconds
+  health_check_grace_period = 60  # Fast detection — Golden AMI boots quickly
 
   #############################################
   # Launch Template attachment
@@ -66,6 +61,6 @@ resource "aws_autoscaling_group" "this" {
   }
 
   lifecycle {
-    ignore_changes = [desired_capacity]  # Keeps scaling policies from causing drift
+    ignore_changes = [desired_capacity]  # Prevents drift from scaling policies
   }
 }

@@ -1,23 +1,21 @@
 ###############################################
-# Autoscaling Module Variables
+# Autoscaling Module Variables (Golden AMI Version)
 ###############################################
 
 variable "project_name" {
   description = "Project name prefix"
   type        = string
-  default     = "leonow"  # Default for testing
 }
 
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3.micro"  # Default small instance
+  default     = "t3.small"
 }
 
-variable "ami_id" {
-  description = "AMI ID for the launch template (Ubuntu 22.04 example)"
+variable "custom_ami_id" {
+  description = "Custom AMI ID with Docker and chatbot pre-baked (from Packer)"
   type        = string
-  default     = "ami-0e86e20dae9224db8"  # Update to your region's Ubuntu 22.04 AMI
 }
 
 variable "ec2_sg_id" {
@@ -31,7 +29,7 @@ variable "instance_profile_name" {
 }
 
 variable "subnet_ids" {
-  description = "Subnets for Auto Scaling Group"
+  description = "List of subnet IDs for the ASG"
   type        = list(string)
 }
 
@@ -40,41 +38,20 @@ variable "target_group_arn" {
   type        = string
 }
 
-variable "ecr_repo_url" {
-  description = "ECR repository URL (full URI without tag)"
-  type        = string
-}
-
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"  # Default to prevent empty vars
-}
-
-variable "app_port" {
-  description = "Application port"
-  type        = number
-  default     = 8080  # Default to match app
-}
-
 variable "min_size" {
-  description = "Minimum ASG size"
+  description = "Minimum size of the Auto Scaling Group"
   type        = number
   default     = 1
 }
 
 variable "max_size" {
-  description = "Maximum ASG size"
+  description = "Maximum size of the Auto Scaling Group"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "desired_capacity" {
-  description = "Desired ASG capacity"
+  description = "Desired capacity of the Auto Scaling Group"
   type        = number
   default     = 1
-}
-variable "custom_ami_id" {
-  description = "Custom AMI ID with Docker and chatbot pre-baked"
-  type        = string
 }
