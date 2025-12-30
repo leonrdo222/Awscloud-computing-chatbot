@@ -4,11 +4,11 @@
 
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-lt-"
-  image_id      = var.ami_id
+  image_id      = var.custom_ami_id        # ← Now uses the pre-baked AMI from Packer
   instance_type = var.instance_type
 
   #############################################
-  # IAM role for EC2
+  # IAM role for EC2 (still needed for SSM and potential future use)
   #############################################
   iam_instance_profile {
     name = var.instance_profile_name
@@ -20,18 +20,9 @@ resource "aws_launch_template" "this" {
   vpc_security_group_ids = [var.ec2_sg_id]
 
   #############################################
-  # User data (Docker + ECR pull)
+  # NO USER_DATA ANYMORE
+  # The AMI already has Docker installed, image pulled, and chatbot.service enabled
   #############################################
-  user_data = base64encode(
-    templatefile(
-      "${path.module}/user_data_systemd.tpl",
-      {
-        ECR_REPO   = var.ecr_repo_url
-        AWS_REGION = var.aws_region
-        APP_PORT   = tostring(var.app_port)
-      }
-    )
-  )
 
   #############################################
   # Zero-downtime updates
@@ -55,7 +46,7 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns   = [var.target_group_arn]
 
   health_check_type         = "ELB"
-  health_check_grace_period = 300  # Increased to allow more time for bootstrap
+  health_check_grace_period = 60  # ← Reduced: instance is ready in ~20-30 seconds
 
   #############################################
   # Launch Template attachment
@@ -75,6 +66,6 @@ resource "aws_autoscaling_group" "this" {
   }
 
   lifecycle {
-    ignore_changes = [desired_capacity]  # Optional: Ignore changes if scaling policies adjust it
+    ignore_changes = [desired_capacity]  # Keeps scaling policies from causing drift
   }
 }

@@ -74,3 +74,7 @@ variable "desired_capacity" {
   type        = number
   default     = 1
 }
+variable "custom_ami_id" {
+  description = "Custom AMI ID with Docker and chatbot pre-baked"
+  type        = string
+}

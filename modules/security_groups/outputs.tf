@@ -1,2 +1,13 @@
-output "alb_sg_id" { value = aws_security_group.alb.id }
-output "ec2_sg_id" { value = aws_security_group.ec2.id }
+###############################################
+# Security Groups Outputs
+###############################################
+
+output "alb_sg_id" {
+  description = "Security group ID for the ALB"
+  value       = aws_security_group.alb.id
+}
+
+output "ec2_sg_id" {
+  description = "Security group ID for EC2 instances"
+  value       = aws_security_group.ec2.id
+}

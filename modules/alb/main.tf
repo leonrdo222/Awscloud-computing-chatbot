@@ -35,10 +35,10 @@ resource "aws_lb_target_group" "this" {
     port                = "traffic-port"
     path                = var.health_check_path
     matcher             = "200-399"
-    interval            = 30
+    interval            = 15            # Faster detection for quick-boot Golden AMI
     timeout             = 5
-    healthy_threshold   = 3
-    unhealthy_threshold = 3
+    healthy_threshold   = 2            # Faster healthy status
+    unhealthy_threshold = 2
   }
 
   tags = {
@@ -48,10 +48,10 @@ resource "aws_lb_target_group" "this" {
 }
 
 ###############################################
-# HTTP → HTTPS Redirect
+# HTTP → HTTPS Redirect Listener
 ###############################################
 
-resource "aws_lb_listener" "http" {
+resource "aws_lb_listener" "http_redirect" {
   load_balancer_arn = aws_lb.this.arn
   port              = 80
   protocol          = "HTTP"
@@ -115,12 +115,10 @@ resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.this.arn
   port              = 443
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"  # Updated to stronger policy
   certificate_arn   = aws_acm_certificate_validation.cert_validation.certificate_arn
 
-  depends_on = [
-    aws_acm_certificate_validation.cert_validation
-  ]
+  depends_on = [aws_acm_certificate_validation.cert_validation]
 
   default_action {
     type             = "forward"
@@ -129,7 +127,7 @@ resource "aws_lb_listener" "https" {
 }
 
 ###############################################
-# Route53 Alias Record
+# Route53 Alias Record to ALB
 ###############################################
 
 resource "aws_route53_record" "app" {

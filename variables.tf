@@ -35,6 +35,7 @@ variable "public_subnet2_cidr" {
   description = "CIDR block for public subnet 2"
   type        = string
 }
+
 variable "availability_zone_1" {
   description = "First availability zone"
   type        = string
@@ -49,9 +50,9 @@ variable "availability_zone_2" {
 # Security
 ###############################################
 variable "admin_cidr" {
-  description = "CIDR allowed to SSH into EC2 instances"
+  description = "CIDR allowed to SSH/SSM into EC2 instances"
   type        = string
-  default     = "0.0.0.0/0"
+  default     = "0.0.0.0/0"  # Restrict in production!
 }
 
 ###############################################
@@ -73,7 +74,7 @@ variable "health_check_path" {
 # Domain / Route53
 ###############################################
 variable "domain_name" {
-  description = "Domain name managed in Route53"
+  description = "Domain name managed in Route53 (e.g., leonow.site)"
   type        = string
 }
 
@@ -83,7 +84,7 @@ variable "hosted_zone_id" {
 }
 
 ###############################################
-# EC2 / Auto Scaling
+# EC2 / Auto Scaling (Golden AMI)
 ###############################################
 variable "instance_type" {
   description = "EC2 instance type for Auto Scaling Group"
@@ -91,8 +92,8 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "ami_id" {
-  description = "AMI ID used by the launch template"
+variable "custom_ami_id" {
+  description = "Custom AMI ID built with Packer (Docker + chatbot pre-installed)"
   type        = string
 }
 

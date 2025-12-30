@@ -18,7 +18,6 @@ module "vpc" {
   availability_zone_2 = var.availability_zone_2
 }
 
-
 ###############################################
 # Security Groups
 ###############################################
@@ -27,6 +26,7 @@ module "security_groups" {
 
   project_name = var.project_name
   vpc_id       = module.vpc.vpc_id
+  vpc_cidr     = var.vpc_cidr_block
   app_port     = var.app_port
   admin_cidr   = var.admin_cidr
 }
@@ -41,7 +41,7 @@ module "iam" {
 }
 
 ###############################################
-# ECR
+# ECR (needed for GitHub Actions / CI/CD to push images)
 ###############################################
 module "ecr" {
   source = "./modules/ecr"
@@ -67,26 +67,59 @@ module "alb" {
 }
 
 ###############################################
-# Auto Scaling / Launch Template
+# Autoscaling Module Variables (Golden AMI Version)
 ###############################################
-module "autoscaling" {
-  source = "./modules/autoscaling"
 
-  project_name  = var.project_name
-  instance_type = var.instance_type
-  ami_id        = var.ami_id
+variable "project_name" {
+  description = "Project name prefix"
+  type        = string
+}
 
-  ec2_sg_id             = module.security_groups.ec2_sg_id
-  instance_profile_name = module.iam.instance_profile_name
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.small"
+}
 
-  subnet_ids       = module.vpc.public_subnet_ids
-  target_group_arn = module.alb.target_group_arn
+variable "custom_ami_id" {
+  description = "Custom AMI ID with Docker and chatbot pre-baked (from Packer)"
+  type        = string
+}
 
-  ecr_repo_url = module.ecr.repository_url
-  aws_region   = var.aws_region
-  app_port     = var.app_port
+variable "ec2_sg_id" {
+  description = "Security group ID for EC2 instances"
+  type        = string
+}
 
-  min_size         = var.min_size
-  max_size         = var.max_size
-  desired_capacity = var.desired_capacity
+variable "instance_profile_name" {
+  description = "IAM instance profile name"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "List of subnet IDs for the ASG"
+  type        = list(string)
+}
+
+variable "target_group_arn" {
+  description = "ALB target group ARN"
+  type        = string
+}
+
+variable "min_size" {
+  description = "Minimum size of the Auto Scaling Group"
+  type        = number
+  default     = 1
+}
+
+variable "max_size" {
+  description = "Maximum size of the Auto Scaling Group"
+  type        = number
+  default     = 2
+}
+
+variable "desired_capacity" {
+  description = "Desired capacity of the Auto Scaling Group"
+  type        = number
+  default     = 1
 }

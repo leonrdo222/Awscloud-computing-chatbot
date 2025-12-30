@@ -23,7 +23,7 @@ variable "alb_sg_id" {
 }
 
 variable "domain_name" {
-  description = "Domain name for the application (e.g. leonow.site)"
+  description = "Domain name for the application (e.g., leonow.site)"
   type        = string
 }
 
