@@ -2,13 +2,10 @@
 # Root Variables
 ###############################################
 
-###############################################
-# Project / AWS
-###############################################
 variable "project_name" {
   description = "Project name prefix used for all resources"
   type        = string
-  default     = "chatbotleo"
+  default     = "leonow"
 }
 
 variable "aws_region" {
@@ -17,9 +14,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-###############################################
-# VPC / Networking
-###############################################
 variable "vpc_cidr_block" {
   description = "CIDR block for the VPC"
   type        = string
@@ -46,18 +40,12 @@ variable "availability_zone_2" {
   type        = string
 }
 
-###############################################
-# Security
-###############################################
 variable "admin_cidr" {
-  description = "CIDR allowed to SSH/SSM into EC2 instances"
+  description = "CIDR allowed for SSH/SSM access"
   type        = string
   default     = "0.0.0.0/0"  # Restrict in production!
 }
 
-###############################################
-# Application / ALB
-###############################################
 variable "app_port" {
   description = "Port the application listens on"
   type        = number
@@ -65,52 +53,46 @@ variable "app_port" {
 }
 
 variable "health_check_path" {
-  description = "Health check path for the ALB target group"
+  description = "Health check path for ALB"
   type        = string
   default     = "/"
 }
 
-###############################################
-# Domain / Route53
-###############################################
 variable "domain_name" {
-  description = "Domain name managed in Route53 (e.g., leonow.site)"
+  description = "Domain name (leonow.site)"
   type        = string
 }
 
 variable "hosted_zone_id" {
-  description = "Route53 hosted zone ID for the domain"
+  description = "Route53 hosted zone ID"
   type        = string
 }
 
-###############################################
-# EC2 / Auto Scaling (Golden AMI)
-###############################################
 variable "instance_type" {
-  description = "EC2 instance type for Auto Scaling Group"
+  description = "EC2 instance type"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
-variable "custom_ami_id" {
-  description = "Custom AMI ID built with Packer (Docker + chatbot pre-installed)"
+variable "ami_id" {
+  description = "Ubuntu 22.04 AMI ID"
   type        = string
 }
 
 variable "min_size" {
-  description = "Minimum number of EC2 instances"
+  description = "ASG minimum size"
   type        = number
   default     = 1
 }
 
 variable "max_size" {
-  description = "Maximum number of EC2 instances"
+  description = "ASG maximum size"
   type        = number
   default     = 2
 }
 
 variable "desired_capacity" {
-  description = "Desired number of EC2 instances"
+  description = "ASG desired capacity"
   type        = number
   default     = 1
 }

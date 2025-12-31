@@ -13,12 +13,12 @@ output "public_subnet_ids" {
 }
 
 output "alb_dns_name" {
-  description = "DNS name of the Application Load Balancer"
+  description = "DNS name of the ALB"
   value       = module.alb.alb_dns_name
 }
 
 output "ecr_repository_url" {
-  description = "URL of the ECR repository"
+  description = "ECR repository URL"
   value       = module.ecr.repository_url
 }
 
@@ -28,6 +28,6 @@ output "autoscaling_group_name" {
 }
 
 output "launch_template_id" {
-  description = "ID of the Launch Template (useful for debugging)"
+  description = "ID of the Launch Template"
   value       = module.autoscaling.launch_template_id
 }

@@ -67,20 +67,24 @@ module "alb" {
 }
 
 ###############################################
-# Auto Scaling (Golden AMI)
+# Auto Scaling (with user_data)
 ###############################################
 module "autoscaling" {
   source = "./modules/autoscaling"
 
   project_name          = var.project_name
   instance_type         = var.instance_type
-  custom_ami_id         = var.custom_ami_id
+  ami_id                = var.ami_id  # Standard Ubuntu AMI
 
   ec2_sg_id             = module.security_groups.ec2_sg_id
   instance_profile_name = module.iam.instance_profile_name
 
   subnet_ids       = module.vpc.public_subnet_ids
   target_group_arn = module.alb.target_group_arn
+
+  ecr_repo_url = module.ecr.repository_url
+  aws_region   = var.aws_region
+  app_port     = var.app_port
 
   min_size         = var.min_size
   max_size         = var.max_size

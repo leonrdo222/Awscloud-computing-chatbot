@@ -1,27 +1,29 @@
 ###############################################
-# Launch Template (Golden AMI)
+# Launch Template
 ###############################################
 
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-lt-"
-  image_id      = var.custom_ami_id        # ← Pre-baked AMI from Packer
+  image_id      = var.ami_id  # Standard Ubuntu AMI
   instance_type = var.instance_type
 
-  #############################################
-  # IAM role for EC2 (SSM + future use)
-  #############################################
   iam_instance_profile {
     name = var.instance_profile_name
   }
 
-  #############################################
-  # Networking
-  #############################################
   vpc_security_group_ids = [var.ec2_sg_id]
 
-  #############################################
-  # Zero-downtime updates
-  #############################################
+  user_data = base64encode(
+    templatefile(
+      "${path.module}/user_data_systemd.tpl",
+      {
+        ECR_REPO   = var.ecr_repo_url
+        AWS_REGION = var.aws_region
+        APP_PORT   = var.app_port
+      }
+    )
+  )
+
   lifecycle {
     create_before_destroy = true
   }
@@ -41,19 +43,13 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns   = [var.target_group_arn]
 
   health_check_type         = "ELB"
-  health_check_grace_period = 60  # Fast detection — Golden AMI boots quickly
+  health_check_grace_period = 300
 
-  #############################################
-  # Launch Template attachment
-  #############################################
   launch_template {
     id      = aws_launch_template.this.id
     version = "$Latest"
   }
 
-  #############################################
-  # Instance tagging
-  #############################################
   tag {
     key                 = "Name"
     value               = "${var.project_name}-ec2"
@@ -61,6 +57,6 @@ resource "aws_autoscaling_group" "this" {
   }
 
   lifecycle {
-    ignore_changes = [desired_capacity]  # Prevents drift from scaling policies
+    ignore_changes = [desired_capacity]
   }
 }
