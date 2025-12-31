@@ -7,8 +7,8 @@ set -x
 echo "User-data started at $(date)"
 
 # Fail fast if variables are missing
-if [ -z "$${AWS_REGION}" ] || [ -z "$${ECR_REPO}" ] || [ -z "$${APP_PORT}" ]; then
-  echo "ERROR: Missing required variables (AWS_REGION, ECR_REPO, or APP_PORT)" >&2
+if [ -z "${ECR_REPO}" ] || [ -z "${AWS_REGION}" ] || [ -z "${APP_PORT}" ]; then
+  echo "ERROR: Missing required variables (ECR_REPO, AWS_REGION, or APP_PORT)" >&2
   exit 1
 fi
 
@@ -51,10 +51,10 @@ done
 usermod -aG docker ubuntu
 
 # Login to ECR
-aws ecr get-login-password --region $${AWS_REGION} | docker login --username AWS --password-stdin $${ECR_REPO%/*}
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO%/*}
 
 # Pull the latest image
-docker pull $${ECR_REPO}:latest
+docker pull ${ECR_REPO}:latest
 
 # Create systemd service
 cat > /etc/systemd/system/chatbot.service <<EOF
@@ -65,7 +65,7 @@ Requires=docker.service
 
 [Service]
 Restart=always
-ExecStart=/usr/bin/docker run --name chatbot -p $${APP_PORT}:8080 $${ECR_REPO}:latest
+ExecStart=/usr/bin/docker run --name chatbot -p ${APP_PORT}:8080 ${ECR_REPO}:latest
 ExecStop=/usr/bin/docker stop chatbot
 ExecStopPost=/usr/bin/docker rm chatbot
 

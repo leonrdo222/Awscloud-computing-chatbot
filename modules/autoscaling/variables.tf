@@ -1,56 +1,73 @@
+###############################################
+# Autoscaling Module Variables
+###############################################
+
 variable "project_name" {
-  type = string
+  description = "Project name prefix"
+  type        = string
 }
 
 variable "instance_type" {
-  type    = string
-  default = "t3.small"
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.small"
 }
 
 variable "ami_id" {
-  type = string
+  description = "Ubuntu 22.04 AMI ID"
+  type        = string
 }
 
 variable "ec2_sg_id" {
-  type = string
+  description = "Security group ID for EC2 instances"
+  type        = string
 }
 
 variable "instance_profile_name" {
-  type = string
+  description = "IAM instance profile name"
+  type        = string
 }
 
 variable "subnet_ids" {
-  type = list(string)
+  description = "List of subnet IDs for the ASG"
+  type        = list(string)
 }
 
 variable "target_group_arn" {
-  type = string
+  description = "ALB target group ARN"
+  type        = string
 }
 
 variable "ecr_repo_url" {
-  type = string
+  description = "Full ECR repository URL (e.g., 123456789012.dkr.ecr.us-east-1.amazonaws.com/leonow-chatbot)"
+  type        = string
 }
 
 variable "aws_region" {
-  type = string
+  description = "AWS region"
+  type        = string
 }
 
 variable "app_port" {
-  type    = number
-  default = 8080
+  description = "Port the application listens on"
+  type        = number
+  default     = 8080
 }
 
 variable "min_size" {
-  type    = number
-  default = 1
+  description = "Minimum size of the Auto Scaling Group"
+  type        = number
+  default     = 1
 }
 
 variable "max_size" {
-  type    = number
-  default = 2
+  description = "Maximum size of the Auto Scaling Group"
+  type        = number
+  default     = 2
 }
 
 variable "desired_capacity" {
-  type    = number
-  default = 1
+  description = "Desired capacity of the Auto Scaling Group"
+  type        = number
+  default     = 1
 }

@@ -4,7 +4,7 @@
 
 resource "aws_launch_template" "this" {
   name_prefix   = "${var.project_name}-lt-"
-  image_id      = var.ami_id  # Standard Ubuntu AMI
+  image_id      = var.ami_id
   instance_type = var.instance_type
 
   iam_instance_profile {
@@ -43,7 +43,7 @@ resource "aws_autoscaling_group" "this" {
   target_group_arns   = [var.target_group_arn]
 
   health_check_type         = "ELB"
-  health_check_grace_period = 300
+  health_check_grace_period = 300  # Plenty of time for full bootstrap
 
   launch_template {
     id      = aws_launch_template.this.id
